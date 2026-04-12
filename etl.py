@@ -98,6 +98,12 @@ df["pais_destino"] = padronizar_texto(df["pais_destino"])
 df["bloco_destino"] = padronizar_texto(df["bloco_destino"])
 df["cod_iso_origem"] = df["cod_iso_origem"].str.strip().str.upper()
 df["cod_iso_destino"] = df["cod_iso_destino"].str.strip().str.upper()
+df["tipo_transacao"] = padronizar_texto(df["tipo_transacao"])
+df["transporte"] = padronizar_texto(df["transporte"])
+df["moeda_origem"] = padronizar_texto(df["moeda_origem"])
+df["pais_moeda_origem"] = padronizar_texto(df["pais_moeda_origem"])
+df["moeda_destino"] = padronizar_texto(df["moeda_destino"])
+df["pais_moeda_destino"] = padronizar_texto(df["pais_moeda_destino"])
 
 
 # Dimensão Tempo
@@ -188,6 +194,92 @@ df = df.drop(columns=["pais", "cod_iso", "bloco_economico"])
 
 
 df = df.drop(columns=["produto", "categoria_produto", "ncm_produto"])
+
+#dimensao tipo transacao
+dim_tipo_transacao = df[["tipo_transacao"]].drop_duplicates().copy()
+dim_tipo_transacao["tipo_transacao"] = padronizar_texto(dim_tipo_transacao["tipo_transacao"])
+
+# surrogate key
+dim_tipo_transacao = dim_tipo_transacao.reset_index(drop=True)
+dim_tipo_transacao["sk_tipo_transacao"] = range(1, len(dim_tipo_transacao) + 1)
+
+#renomear coluna
+dim_tipo_transacao.rename(columns={"tipo_transacao": "descricao_tipo_transacao"},inplace=True)
+
+
+
+
+#mapear tabela fato
+df = df.merge(
+    dim_tipo_transacao,
+    left_on="tipo_transacao",
+    right_on="descricao_tipo_transacao",
+    how="left"
+
+)
+
+df = df.drop(columns=["tipo_transacao", "descricao_tipo_transacao"])
+
+
+
+#dminesao transporte
+dim_transporte = df[["transporte"]].drop_duplicates().copy()
+
+#surrogate key
+dim_transporte = dim_transporte.reset_index(drop=True)
+dim_transporte["sk_transporte"] = range(1, len(dim_transporte) + 1)
+
+#renomear coluna
+dim_transporte.rename(columns={"transporte": "descricao_transporte"},inplace=True)
+
+dim_transporte = dim_transporte[["sk_transporte", "descricao_transporte"]]
+
+df = df.merge(
+    dim_transporte,
+    left_on="transporte",
+    right_on="descricao_transporte",
+    how="left"
+)
+
+df = df.drop(columns=["transporte", "descricao_transporte"])
+
+
+#dimensao moeda
+df_moeda_origem = df[["moeda_origem", "pais_moeda_origem"]].drop_duplicates().copy()
+df_moeda_origem.columns = ["descricao_moeda", "pais_moeda"]
+
+df_moeda_destino = df[["moeda_destino", "pais_moeda_destino"]].drop_duplicates().copy()
+df_moeda_destino.columns = ["descricao_moeda", "pais_moeda"]
+
+
+#dimensao unica e SK
+dim_moeda = pd.concat([df_moeda_origem, df_moeda_destino]).drop_duplicates().reset_index(drop=True)
+dim_moeda["sk_moeda"] = range(1, len(dim_moeda) + 1)
+dim_moeda = dim_moeda[["sk_moeda", "descricao_moeda", "pais_moeda"]]
+
+# Mapeando SKs de moeda na fato
+df = df.merge(
+    dim_moeda,
+    left_on=["moeda_origem","pais_moeda_origem"],
+    right_on=["descricao_moeda", "pais_moeda"],
+    how="left"
+)
+
+df.rename(columns={"sk_moeda": "sk_moeda_origem"},inplace=True)
+df = df.drop(columns=["descricao_moeda", "pais_moeda"])
+
+
+df = df.merge(
+    dim_moeda,
+    left_on=["moeda_destino","pais_moeda_destino"],
+    right_on=["descricao_moeda", "pais_moeda"],
+    how="left"
+)
+
+df.rename(columns={"sk_moeda": "sk_moeda_destino"},inplace=True)
+df = df.drop(columns=["descricao_moeda", "pais_moeda"])
+
+df = df.drop(columns=["moeda_origem", "pais_moeda_origem", "moeda_destino", "pais_moeda_destino"])
 
 print(df.head())
 print(df.columns)
