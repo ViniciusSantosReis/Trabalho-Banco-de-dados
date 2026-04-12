@@ -104,6 +104,10 @@ df["moeda_origem"] = padronizar_texto(df["moeda_origem"])
 df["pais_moeda_origem"] = padronizar_texto(df["pais_moeda_origem"])
 df["moeda_destino"] = padronizar_texto(df["moeda_destino"])
 df["pais_moeda_destino"] = padronizar_texto(df["pais_moeda_destino"])
+df["transporte"] = padronizar_texto(df["transporte"])
+df["tipo_transacao"] = padronizar_texto(df["tipo_transacao"])
+df["moeda_origem"] = padronizar_texto(df["moeda_origem"])
+df["moeda_destino"] = padronizar_texto(df["moeda_destino"])
 
 
 # Dimensão Tempo
@@ -279,8 +283,25 @@ df = df.merge(
 df.rename(columns={"sk_moeda": "sk_moeda_destino"},inplace=True)
 df = df.drop(columns=["descricao_moeda", "pais_moeda"])
 
-df = df.drop(columns=["moeda_origem", "pais_moeda_origem", "moeda_destino", "pais_moeda_destino"])
+df = df.drop(columns=["moeda_origem", "pais_moeda_origem", "moeda_destino", "pais_moeda_destino", "ano", "mes", "dia", "dia_semana"])
+df = df.drop(columns=["data", "pais_origem", "pais_destino","cod_iso_origem","cod_iso_destino","bloco_origem","bloco_destino",])
 
-print(df.head())
-print(df.columns)
+# Organizando
+fato = df[[
+    "sk_tempo",
+    "sk_produto",
+    "sk_pais_origem",
+    "sk_pais_destino",
+    "sk_moeda_origem",
+    "sk_moeda_destino",
+    "sk_transporte",
+    "sk_tipo_transacao",
+    "quantidade",
+    "valor_original",
+    "valor_convertido",
+    "taxa_cambio"
+]]
+
+print(fato.head())
+print(fato.columns)
 
