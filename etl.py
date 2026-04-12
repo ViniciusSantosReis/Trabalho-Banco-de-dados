@@ -1,5 +1,7 @@
 import mysql.connector
 import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 
 from dotenv import load_dotenv
 import os
@@ -302,6 +304,19 @@ fato = df[[
     "taxa_cambio"
 ]]
 
-print(fato.head())
-print(fato.columns)
+# Gráfico Top 10 Produtos
+df_produto = fato.merge(dim_produto, on="sk_produto")
+top_produtos = df_produto.groupby("produto")["valor_convertido"].sum()
+top_produtos = top_produtos.sort_values(ascending=False).head(10)
+
+ax = top_produtos.plot(kind="bar")
+
+ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: f'{x/1_000_000:.1f}M'))
+
+plt.ylabel("Valor Total (Milhões)")
+plt.title("Top 10 Produtos por Valor")
+
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
 
