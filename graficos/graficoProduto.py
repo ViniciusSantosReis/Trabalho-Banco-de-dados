@@ -1,6 +1,5 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
 from sqlalchemy import create_engine
 
 from dotenv import load_dotenv
@@ -27,8 +26,12 @@ df_grafico = pd.read_sql(query, engine)
 df_grafico["total_valor"] = df_grafico["total_valor"] / 1_000_000
 
 plt.figure()
-plt.bar(df_grafico["produto"], df_grafico["total_valor"])
-plt.xticks(rotation=45)
-plt.title("Valor total por produto (Em Milhões)")
+
+plt.barh(df_grafico["produto"], df_grafico["total_valor"])
+
+plt.title("Top 10 Produtos por Valor Total", fontsize=14)
+plt.xlabel("Valor (em milhões)")
+plt.ylabel("Produto")
+
 plt.tight_layout()
 plt.show()
