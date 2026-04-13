@@ -24,17 +24,17 @@ ORDER BY total_valor DESC;
 
 df_bloco = pd.read_sql(query, engine)
 
-df_bloco["total_valor"] = df_bloco["total_valor"] / 1_000_000
+plt.figure(figsize=(8,8))
 
-df_bloco = df_bloco.sort_values("total_valor", ascending=True)
+plt.pie(
+    df_bloco["total_valor"],
+    labels=df_bloco["bloco_economico"],
+    autopct='%1.1f%%',
+    startangle=140,
+    wedgeprops={'edgecolor': 'white'}
+)
 
-plt.figure()
-
-plt.barh(df_bloco["bloco_economico"], df_bloco["total_valor"])
-
-plt.title("Valor Total por Bloco Econômico (Origem)")
-plt.xlabel("Valor Total (milhões)")
-plt.ylabel("Bloco Econômico")
+plt.title("Participação por Bloco Econômico (Origem)", fontsize=14)
 
 plt.tight_layout()
 plt.show()

@@ -3,6 +3,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from sqlalchemy import create_engine
+from sqlalchemy import text
 
 from dotenv import load_dotenv
 import os
@@ -317,9 +318,54 @@ fato.rename(columns={
 
 
 
-fato.to_sql(
-    "fato_transacoes_internacionais",
-    engine,
-    if_exists="append",
-    index=False
-)
+
+# CARGA
+def limpar_DW(engine):
+    with engine.connect() as conn:
+        print("executando limpeza")
+
+        conn.execute(text("SET FOREIGN_KEY_CHECKS = 0"))
+
+        conn.execute(text("TRUNCATE TABLE fato_transacoes_internacionais"))
+        conn.execute(text("TRUNCATE TABLE dim_tempo"))
+        conn.execute(text("TRUNCATE TABLE dim_produto"))
+        conn.execute(text("TRUNCATE TABLE dim_pais"))
+        conn.execute(text("TRUNCATE TABLE dim_moeda"))
+        conn.execute(text("TRUNCATE TABLE dim_transporte"))
+        conn.execute(text("TRUNCATE TABLE dim_tipo_transacao"))
+
+        conn.execute(text("SET FOREIGN_KEY_CHECKS = 1"))
+
+        conn.commit()
+
+print("Iniciando carga no DW...")
+
+print("executando limpeza")
+limpar_DW(engine)
+
+print("Carregando dim_tempo...")
+dim_tempo.to_sql("dim_tempo", engine, if_exists="append", index=False)
+
+print("Carregando dim_produto...")
+dim_produto.to_sql("dim_produto", engine, if_exists="append", index=False)
+
+print("Carregando dim_pais...")
+dim_pais.to_sql("dim_pais", engine, if_exists="append", index=False)
+
+print("Carregando dim_tipo_transacao...")
+dim_tipo_transacao.to_sql("dim_tipo_transacao", engine, if_exists="append", index=False)
+
+print("Carregando dim_transporte...")
+dim_transporte.to_sql("dim_transporte", engine, if_exists="append", index=False)
+
+print("Carregando dim_moeda...")
+dim_moeda.to_sql("dim_moeda", engine, if_exists="append", index=False)
+
+# ==============================
+# CARGA FATO
+# ==============================
+
+print("Carregando fato...")
+fato.to_sql("fato_transacoes_internacionais", engine, if_exists="append", index=False)
+
+print("✅ Carga finalizada com sucesso!")
